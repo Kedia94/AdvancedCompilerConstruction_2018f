@@ -43,6 +43,7 @@
 #include "parser.h"
 #include "ir.h"
 #include "backend.h"
+#include "inlining.h"
 using namespace std;
 
 
@@ -245,6 +246,13 @@ int main(int argc, char *argv[])
       CModule *m = new CModule(ast);
 
       DumpTAC(file, m);
+	  
+	  // Start DEBUG
+	  Inlining *a = new Inlining();
+	  a->parseTAC(m);
+	  cout << a << endl;
+	  return -1;
+	  // End DEBUG
 
       // output x86 assembly to console or file
       ostream *out = &cout;
