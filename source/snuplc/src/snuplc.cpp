@@ -250,8 +250,11 @@ int main(int argc, char *argv[])
 	  // Start DEBUG
 	  Inlining *a = new Inlining();
 	  a->parseTAC(m);
+	  a->calculateScore();
 	  cout << a << endl;
-	  return -1;
+
+	  a->doOneStep();
+//	  return -1;
 	  // End DEBUG
 
       // output x86 assembly to console or file

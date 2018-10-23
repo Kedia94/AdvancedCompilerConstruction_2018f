@@ -30,13 +30,17 @@ int fNode::GetCodeLen() const
 	return _code_length;
 }
 
-int fNode::GetChildScore(int index) const
+int fNode::GetChildLen() const
 {
-	// TODO
-	return index * index;
+	return _children.size();
 }
 
-fNodeWithLoop* fNode::GetChild(int index)
+int fNode::GetChildScore(int index) const
+{
+	return _children[index]->GetScore();
+}
+
+fCallNode* fNode::GetChild(int index)
 {
 	if (index < _children.size())
 		return _children[index];
@@ -44,7 +48,7 @@ fNodeWithLoop* fNode::GetChild(int index)
 	return NULL;
 }
 
-int fNode::AddChild(fNodeWithLoop* child)
+int fNode::AddChild(fCallNode* child)
 {
 	_children.push_back(child);
 }
@@ -53,7 +57,7 @@ void fNode::RemoveChild(int index)
 {
 	if (index < _children.size())
 	{
-		fNodeWithLoop* tempLoop = _children[index];
+		fCallNode* tempLoop = _children[index];
 		_children.erase(_children.begin() + index - 1);
 		delete tempLoop;
 	}
@@ -91,9 +95,9 @@ ostream& fNode::print(ostream &out, int indent) const
 }
 
 //------------------------------------------------------------------------------
-// fNodeWithLoop
+// fCallNode
 //
-fNodeWithLoop::fNodeWithLoop(fNode* original, int loop_level)
+fCallNode::fCallNode(fNode* original, int loop_level)
 {
 	_node = original;
 	_loop_level = loop_level;
@@ -101,46 +105,46 @@ fNodeWithLoop::fNodeWithLoop(fNode* original, int loop_level)
 	_name = original->GetName();
 }
 
-fNodeWithLoop::~fNodeWithLoop(void)
+fCallNode::~fCallNode(void)
 {
 }
 
-void fNodeWithLoop::SetLoopLevel(int loop_level)
+void fCallNode::SetLoopLevel(int loop_level)
 {
 	_loop_level = loop_level;
 }
 
-int fNodeWithLoop::GetLoopLevel() const
+int fCallNode::GetLoopLevel() const
 {
 	return _loop_level;
 }
 
-void fNodeWithLoop::SetScore(int score)
+void fCallNode::SetScore(float score)
 {
 	_score = score;
 }
 
-int fNodeWithLoop::GetScore() const
+float fCallNode::GetScore() const
 {
 	return _score;
 }
 
-fNode* fNodeWithLoop::GetNode()
+fNode* fCallNode::GetNode()
 {
 	return _node;
 }
 
-void fNodeWithLoop::SetName(string name)
+void fCallNode::SetName(string name)
 {
 	_name = name;
 }
 
-string fNodeWithLoop::GetName() const
+string fCallNode::GetName() const
 {
 	return _name;
 }
 
-ostream& fNodeWithLoop::print(ostream &out, int indent) const
+ostream& fCallNode::print(ostream &out, int indent) const
 {
 	string ind(indent, ' ');
 

@@ -8,7 +8,7 @@
 
 using namespace std;
 
-class fNodeWithLoop;
+class fCallNode;
 
 class fNode {
 	public:
@@ -18,8 +18,8 @@ class fNode {
 		int GetCodeLen() const;
 		int GetChildLen() const;
 		int GetChildScore(int index) const;
-		fNodeWithLoop* GetChild(int index);
-		int AddChild(fNodeWithLoop* child);
+		fCallNode* GetChild(int index);
+		int AddChild(fCallNode* child);
 		void RemoveChild(int index);
 		void SetName(string name);
 		string GetName() const;
@@ -28,26 +28,26 @@ class fNode {
 
 	protected:
 		int _code_length;
-		vector<fNodeWithLoop*> _children;
+		vector<fCallNode*> _children;
 		string _name;
 		CScope* _module;
 };
 
-class fNodeWithLoop {
+class fCallNode {
 	public:
-		fNodeWithLoop(fNode* original, int loop_level);
-		~fNodeWithLoop(void);
+		fCallNode(fNode* original, int loop_level);
+		~fCallNode(void);
 		void SetLoopLevel(int loop_level);
 		int GetLoopLevel() const;
-		void SetScore(int score);
-		int GetScore() const;
+		void SetScore(float score);
+		float GetScore() const;
 		fNode* GetNode();
 		void SetName(string name);
 		string GetName() const;
 		virtual ostream&  print(ostream &out, int indent=0) const;
 
 	protected:
-		int _score;
+		float _score;
 		int _loop_level;
 		fNode* _node;
 		string _name;
