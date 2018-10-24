@@ -6,6 +6,8 @@
 Inlining::Inlining(void)
 {
 	_module = NULL;
+	_param_iter = 0;
+	_original_length = -1;
 }
 
 Inlining::~Inlining(void)
@@ -92,7 +94,6 @@ void Inlining::parseTAC(CModule *module)
 					else if (label.substr(found+1).compare("if_false") == 0)
 					{
 					}
-					cout<<label.substr(found+1)<<":= "<<num<<endl;
 				}
 				else
 				{
@@ -107,11 +108,11 @@ void Inlining::parseTAC(CModule *module)
 							break;
 						}
 					}
-					cout<<": "<<label<<":= "<<num<<endl;
 				}
 			}
 		}
 	}
+	_original_length = GetCBSize();
 }
 
 void Inlining::calculateScore()
@@ -141,6 +142,13 @@ void Inlining::calculate(fNode* node, int base_score)
 
 void Inlining::doOneStep()
 {
+	int Peek = PeekCBSize();
+	cout<<"original: "<<_original_length<<" / predicted: "<<Peek<<endl;
+	if (INLINING_LIMIT(_original_length) < Peek)
+	{
+		cout<<"Size limit: Do not inlining" << endl;
+		return;
+	}
 	float max_score = -1;
 	int max_index = -1;
 	int max_child_index = -1;
@@ -160,13 +168,125 @@ void Inlining::doOneStep()
 		}
 	}
 
-	// TODO
+	// TODO: Inline (max_index, max_child_index)
+	CScope* parent = _nodes[max_index]->GetModule();
+	CScope* target = _nodes[max_index]->GetChild(max_child_index)->GetNode()->GetModule();
 
-	cout<<"Inline: "<<_nodes[max_index]->GetChild(max_child_index)->GetName()<<endl;
+	CCodeBlock* tcb = parent->GetCodeBlock();
+	list<CTacInstr*> ops = tcb->GetInstr();
+
+	int loop_level = 0;
+	vector<int> while_label;
+	while_label.clear();
+
+	list<CTacInstr*>::const_iterator it;
+	const CSymbol* tsym;
+	int iter_j = 0;
+	for (it = ops.begin(); it != ops.end(); it++) {
+		if ((*it)->GetOperation() == opCall)
+		{
+			CTac* Fun = NULL;
+			if ((*it)->GetSrc(1) != NULL)
+				Fun = (*it)->GetSrc(1);
+			else
+				Fun = (*it)->GetDest();
+
+			tsym = NULL;
+			if (CTacName* t = dynamic_cast<CTacName*>(Fun))
+				tsym = t->GetSymbol();
+
+			if (tsym)
+			{
+				fNode* tempNode = FindSymbol(tsym);
+				if (tempNode)
+				{
+					if (max_child_index == iter_j)
+					{
+						break;
+					}
+					iter_j++;
+				}
+			}
+		}
+	}
+	// it : call of what we have to inline
+	const CSymProc* proc = dynamic_cast<const CSymProc*>(tsym);
+	cout<<"target: "<<proc<<endl;
+	assert(proc);
+	const CSymParam* parm;
+	vector<string> param_vector;
+	int paramnum = proc->GetNParams();
+	for (int i=0; i<paramnum; i++){
+		parm = proc->GetParam(i);
+		cout<<i<<": "<< parm->GetName() << ", Type: "<<parm->GetDataType()<<endl;
+		param_vector.push_back(parm->GetName());
+	}
+
+
+
+
+
+	param_vector.clear();
+
+	// Remove child
+	_nodes[max_index]->RemoveChild(max_child_index);
+
+
+	// recalculate parameters after inlining
+	// LEN update
+	for (int i=0; i<_nodes.size(); i++)
+	{
+		_nodes[i]->SetCodeLen(_nodes[i]->GetModule()->GetCodeBlock()->GetInstr().size());
+	}
+
+	// TODO: Child update with loop level
+	calculateScore();
+
+
+}
+
+int Inlining::GetCBSize()
+{
+	int size = 0;
+	for (int i=0; i<_nodes.size(); i++)
+		size += _nodes[i]->GetCodeLen();
+
+	return size;
+}
+
+int Inlining::PeekCBSize()
+{
+	int size = GetCBSize();
+
+	float max_score = -1;
+	int max_index = -1;
+	int max_child_index = -1;
+
+	for (int i=0; i<_nodes.size(); i++)
+	{
+		fNode* tNode = _nodes[i];
+		for (int j=0; j<tNode->GetChildLen(); j++)
+		{
+			if (tNode->GetChild(j)->GetScore() > max_score)
+			{
+				max_score = tNode->GetChild(j)->GetScore();
+				max_index = i;
+				max_child_index = j;
+			}
+
+		}
+	}
+
+	size += _nodes[max_index]->GetChild(max_child_index)->GetNode()->GetCodeLen();
+
+	return size;
 }
 
 fNode* Inlining::FindSymbol(const CSymbol* symbol)
 {
+	if (!symbol)
+		return NULL;
+
 	string name = symbol->GetName();
 
 	for (int i=0; i<_nodes.size(); i++)

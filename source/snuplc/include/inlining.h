@@ -12,6 +12,7 @@
 #define INLINING_CALL_IN_SUB 3
 
 #define INLINING_SCORE_LEN(X) 1/(float)X
+#define INLINING_LIMIT(X) 1.5f*X
 
 using namespace std;
 
@@ -23,12 +24,17 @@ class Inlining {
 		void calculateScore();
 		void calculate(fNode* node, int base_score);
 		void doOneStep();
-		fNode* FindSymbol(const CSymbol* symbol);
+		int GetCBSize();
+		int PeekCBSize();
 		virtual ostream&  print(ostream &out, int indent=0) const;
 
 	protected:
 		CModule* _module;
 		vector<fNode*> _nodes;
+		int _param_iter;
+		int _original_length;
+
+		fNode* FindSymbol(const CSymbol* symbol);
 
 };
 ostream& operator<<(ostream &out, const Inlining &t);
