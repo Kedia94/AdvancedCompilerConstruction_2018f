@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cmath>
+#include <map>
 
 #include "inlining.h"
 
@@ -133,7 +134,7 @@ void Inlining::calculate(fNode* node, int base_score)
 	{
 		fCallNode* tNode = node->GetChild(i);
 
-		float score = INLINING_SCORE_LEN(tNode->GetNode()->GetCodeLen());
+		float score = INLINING_SCORE_LEN((tNode->GetNode()->GetCodeLen()+1));
 		score *= base_score;
 		score *= pow((float)INLINING_CALL_IN_LOOP, (float)tNode->GetLoopLevel());
 		tNode->SetScore(score);
@@ -144,6 +145,8 @@ void Inlining::doOneStep()
 {
 	int Peek = PeekCBSize();
 	cout<<"original: "<<_original_length<<" / predicted: "<<Peek<<endl;
+	if (_original_length == Peek)
+		return;
 	if (INLINING_LIMIT(_original_length) < Peek)
 	{
 		cout<<"Size limit: Do not inlining" << endl;
@@ -168,7 +171,7 @@ void Inlining::doOneStep()
 		}
 	}
 
-	// TODO: Inline (max_index, max_child_index)
+	// Inline (max_index, max_child_index)
 	CScope* parent = _nodes[max_index]->GetModule();
 	CScope* target = _nodes[max_index]->GetChild(max_child_index)->GetNode()->GetModule();
 
@@ -211,25 +214,52 @@ void Inlining::doOneStep()
 	}
 	// it : call of what we have to inline
 	const CSymProc* proc = dynamic_cast<const CSymProc*>(tsym);
-	cout<<"target: "<<proc<<endl;
+	cout<<"parent: "<<parent->GetName()<<endl;
+	cout<<"target: "<<proc<<" "<<target->GetName()<<endl;
+	
 	assert(proc);
+
+	vector<string> parm_vector;
+
+	// Check Function Arguments
 	const CSymParam* parm;
-	vector<string> param_vector;
 	int paramnum = proc->GetNParams();
 	for (int i=0; i<paramnum; i++){
 		parm = proc->GetParam(i);
-		cout<<i<<": "<< parm->GetName() << ", Type: "<<parm->GetDataType()<<endl;
-		param_vector.push_back(parm->GetName());
+		parm_vector.push_back(parm->GetName());
 	}
 
+	map<string, CSymLocal*> inline_vars;
+	
+	// Check Local Variables of target and put it on Symtab of parent
+	CSymtab* symtab = target->GetSymbolTable();
+	CSymtab* par_symtab = parent->GetSymbolTable();
+	vector<CSymbol*> syms = symtab->GetSymbols();
+	for (int i=0; i<syms.size(); i++)
+	{
+		string tName = "i" + to_string(_param_iter) + "_" + syms[i]->GetName();
+		CSymLocal* tempLocal = new CSymLocal(tName, syms[i]->GetDataType());
+		inline_vars[syms[i]->GetName()] = tempLocal;
+	}
+
+	for (map<string, CSymLocal*>::iterator tt=inline_vars.begin(); tt != inline_vars.end(); tt++)
+	{
+		par_symtab->AddSymbol(tt->second);
+		cout<<tt->first<<" "<<tt->second->GetName()<<" " <<tt->second->GetDataType()<<endl;
+	}
+
+	//it : call location of target calling in parent
 
 
 
 
-	param_vector.clear();
+
+
+	inline_vars.clear();
 
 	// Remove child
-	_nodes[max_index]->RemoveChild(max_child_index);
+	// double free or corruption (out) XXX
+//	_nodes[max_index]->RemoveChild(max_child_index);
 
 
 	// recalculate parameters after inlining
@@ -243,6 +273,7 @@ void Inlining::doOneStep()
 	calculateScore();
 
 
+	_param_iter++;
 }
 
 int Inlining::GetCBSize()
@@ -277,7 +308,8 @@ int Inlining::PeekCBSize()
 		}
 	}
 
-	size += _nodes[max_index]->GetChild(max_child_index)->GetNode()->GetCodeLen();
+	if (max_index != -1)
+		size += _nodes[max_index]->GetChild(max_child_index)->GetNode()->GetCodeLen();
 
 	return size;
 }

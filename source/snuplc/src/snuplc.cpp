@@ -248,14 +248,16 @@ int main(int argc, char *argv[])
       DumpTAC(file, m);
 	  
 	  // Start DEBUG
+	  
 	  Inlining *a = new Inlining();
 	  a->parseTAC(m);
 	  a->calculateScore();
 	  cout << a << endl;
 
 	  a->doOneStep();
-//	  return -1;
+	  delete a;
 	  // End DEBUG
+	  DumpTAC("test", m);
 
       // output x86 assembly to console or file
       ostream *out = &cout;
