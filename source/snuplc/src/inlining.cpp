@@ -261,10 +261,22 @@ void Inlining::doOneStep()
 	for (list<CTacInstr*>::const_iterator tparm_it = tops.begin(); tparm_it != tops.end();tparm_it++)
 	{
 		CTacInstr* tinstr = *tparm_it;
+		cout<<tinstr<<endl;
+		if (tinstr)
+		{
+			if (CTacLabel* ctlabel = dynamic_cast<CTacLabel*>(tinstr))
+			{
+				string labName = ctlabel->GetLabel();
+				labName = labName.substr(labName.find('_')+1);
+				tinstr = tcb->CreateLabel(labName.c_str());
+				cout<<tinstr<<endl;
+			}
+		}
 		EOperation top = tinstr->GetOperation();
 		CTac* tdst = tinstr->GetDest();
 		if (tdst)
 		{
+		cout<<"1 "<<tdst<<endl;
 			if (CTacName* ctname = dynamic_cast<CTacName*>(tdst))
 			{
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
@@ -277,6 +289,7 @@ void Inlining::doOneStep()
 		CTacAddr* tsrc1 = tinstr->GetSrc(1);
 		if (tsrc1)
 		{
+		cout<<"2 "<<tsrc1<<endl;
 			if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc1))
 			{
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
@@ -289,6 +302,7 @@ void Inlining::doOneStep()
 		CTacAddr* tsrc2 = tinstr->GetSrc(2);
 		if (tsrc2)
 		{
+		cout<<"3 "<<tsrc2<<endl;
 			if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc2))
 			{
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
@@ -299,6 +313,7 @@ void Inlining::doOneStep()
 		}
 		CTacInstr* newInstr = new CTacInstr(top, tdst, tsrc1, tsrc2);
 		new_instr_vector.push_back(newInstr);
+		cout<<"-----------------"<<endl;
 	}
 
 	// Replace 
@@ -336,9 +351,6 @@ void Inlining::doOneStep()
 	cout<<tcb<<endl;
 
 
-
-
-	inline_vars.clear();
 
 	// Remove child
 	// double free or corruption (out) XXX
