@@ -249,6 +249,22 @@ void Inlining::doOneStep()
 	}
 
 	//it : call location of target calling in parent
+	
+	// Change all 'param a <- b' to 'assign t* <- b'
+	list<CTacInstr*>::const_iterator parm_it = it;
+	for (int i=0; i<paramnum; i++)
+	{
+		while ((*parm_it)->GetOperation() != opParam)
+		{
+			parm_it--;
+		}
+
+		list<CTacInstr*>::const_iterator t_parm = parm_it--;
+		CTacInstr* newInstr = new CTacInstr(opAssign, new CTacName(inline_vars[parm_vector[i]]), (*t_parm)->GetSrc(1));
+		tcb->RepInstr((*parm_it)->GetId(), newInstr);
+
+		cout<<tcb<<endl;
+	}
 
 
 

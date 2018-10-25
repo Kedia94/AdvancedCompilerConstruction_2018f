@@ -606,6 +606,21 @@ const list<CTacInstr*>& CCodeBlock::GetInstr(void) const
   return _ops;
 }
 
+CTacInstr* CCodeBlock::RepInstr(int index, CTacInstr *instr)
+{
+	assert(instr != NULL);
+	assert(index < _ops.size());
+
+	list<CTacInstr*>::iterator it = _ops.begin();
+	advance(it, index+1);
+	instr->SetId(index+1);
+	
+	delete *it;
+	_ops.insert(it, instr);
+	_ops.erase(it);
+	return instr;
+}
+
 void CCodeBlock::CleanupControlFlow(void)
 {
   list<CTacInstr*>::iterator it = _ops.begin();
