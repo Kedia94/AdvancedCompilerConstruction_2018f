@@ -706,8 +706,18 @@ class CCodeBlock {
     const list<CTacInstr*>& GetInstr(void) const;
 
 	/// @brief replace a instruction at index
+	/// @param index is Id of instruction
 	/// @retval CTacInstr* replaced instruction
 	CTacInstr* RepInstr(int index, CTacInstr *instr);
+
+	/// @brief insert a instruction at index
+	/// @param index is Id of instruction
+	/// @retval CTacInstr* inserted instruction
+	CTacInstr* InsInstr(int index, CTacInstr *instr);
+
+	/// @brief delete a instruction at index
+	/// @param index is Id of instruction
+	void DelInstr(int index);
 
     /// @brief remove unused/superfluous labels and goto instructions
     void CleanupControlFlow(void);

@@ -612,13 +612,42 @@ CTacInstr* CCodeBlock::RepInstr(int index, CTacInstr *instr)
 	assert(index < _ops.size());
 
 	list<CTacInstr*>::iterator it = _ops.begin();
-	advance(it, index+1);
-	instr->SetId(index+1);
+	advance(it, index);
+	instr->SetId(index);
 	
 	delete *it;
 	_ops.insert(it, instr);
 	_ops.erase(it);
 	return instr;
+}
+
+CTacInstr* CCodeBlock::InsInstr(int index, CTacInstr *instr)
+{
+	assert(instr != NULL);
+	assert(index < _ops.size());
+
+	list<CTacInstr*>::iterator it = _ops.begin();
+	advance(it, index);
+	instr->SetId(index);
+
+	_ops.insert(it, instr);
+	for (; it != _ops.end(); it++)
+	{
+		(*it)->SetId((*it)->GetId()+1);
+	}
+
+	return instr;
+}
+
+void CCodeBlock::DelInstr(int index)
+{
+	assert(index < _ops.size());
+
+	list<CTacInstr*>::iterator it = _ops.begin();
+	advance(it, index);
+	
+	delete *it;
+	_ops.erase(it);
 }
 
 void CCodeBlock::CleanupControlFlow(void)

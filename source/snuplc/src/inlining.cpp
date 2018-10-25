@@ -177,6 +177,8 @@ void Inlining::doOneStep()
 
 	CCodeBlock* tcb = parent->GetCodeBlock();
 	list<CTacInstr*> ops = tcb->GetInstr();
+	CCodeBlock* ttcb = target->GetCodeBlock();
+	list<CTacInstr*> tops = ttcb->GetInstr();
 
 	int loop_level = 0;
 	vector<int> while_label;
@@ -250,8 +252,57 @@ void Inlining::doOneStep()
 
 	//it : call location of target calling in parent
 	
-	// Change all 'param a <- b' to 'assign t* <- b'
 	list<CTacInstr*>::const_iterator parm_it = it;
+	cout<<tcb<<endl;
+
+	// Copy function body of target of inlining
+	vector<CTacInstr*> new_instr_vector;
+
+	for (list<CTacInstr*>::const_iterator tparm_it = tops.begin(); tparm_it != tops.end();tparm_it++)
+	{
+		CTacInstr* tinstr = *tparm_it;
+		EOperation top = tinstr->GetOperation();
+		CTac* tdst = tinstr->GetDest();
+		if (tdst)
+		{
+			if (CTacName* ctname = dynamic_cast<CTacName*>(tdst))
+			{
+				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
+				{
+					tdst = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
+				}
+			}
+		}
+
+		CTacAddr* tsrc1 = tinstr->GetSrc(1);
+		if (tsrc1)
+		{
+			if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc1))
+			{
+				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
+				{
+					tsrc1 = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
+				}
+			}
+		}
+
+		CTacAddr* tsrc2 = tinstr->GetSrc(2);
+		if (tsrc2)
+		{
+			if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc2))
+			{
+				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
+				{
+					tsrc2 = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
+				}
+			}
+		}
+		CTacInstr* newInstr = new CTacInstr(top, tdst, tsrc1, tsrc2);
+		new_instr_vector.push_back(newInstr);
+	}
+
+	// Replace 
+	// Change all 'param a <- b' to 'assign t* <- b'
 	for (int i=0; i<paramnum; i++)
 	{
 		while ((*parm_it)->GetOperation() != opParam)
@@ -261,12 +312,28 @@ void Inlining::doOneStep()
 
 		list<CTacInstr*>::const_iterator t_parm = parm_it--;
 		CTacInstr* newInstr = new CTacInstr(opAssign, new CTacName(inline_vars[parm_vector[i]]), (*t_parm)->GetSrc(1));
-		tcb->RepInstr((*parm_it)->GetId(), newInstr);
-
-		cout<<tcb<<endl;
+		tcb->RepInstr((*t_parm)->GetId(), newInstr);
 	}
 
+	for (int i=0; i<new_instr_vector.size()-1; i++)
+	{
+		tcb->InsInstr((*it)->GetId(), new_instr_vector[i]);
+	}
 
+	// Remove return and call(*it) to assign
+	if ((*it)->GetDest())
+	{
+		CTacInstr* newInstr = new CTacInstr(opAssign, (*it)->GetDest(), new_instr_vector[new_instr_vector.size()-1]->GetSrc(1));
+		cout<<"======================="<<endl;
+		cout<<*it<<endl;
+		tcb->RepInstr((*it)->GetId(), newInstr);
+	}
+	else
+	{
+		tcb->DelInstr((*it)->GetId());
+	}
+	delete new_instr_vector[new_instr_vector.size()-1];
+	cout<<tcb<<endl;
 
 
 
