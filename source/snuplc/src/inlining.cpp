@@ -329,26 +329,41 @@ void Inlining::doOneStep()
 		if (tdst)
 		{
 		cout<<"1 "<<tdst<<endl;
-			if (CTacName* ctname = dynamic_cast<CTacName*>(tdst))
-			{
-				cout<<"CTacName "<<tdst<<endl;
-				cout<<"Name"<<endl;
-				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
-				{
-					tdst = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
-				}
-			}
 			if (CTacConst* ctconst = dynamic_cast <CTacConst*>(tdst))
 				cout<<"CTacConst "<<tdst<<endl;
-			if (CTacTemp* ctconst = dynamic_cast <CTacTemp*>(tdst))
+			else if (CTacTemp* cttemp = dynamic_cast <CTacTemp*>(tdst))
+			{
 				cout<<"CTacTemp "<<tdst<<endl;
-			if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tdst))
+				if (cttemp->GetSymbol()->GetName().compare("t8")==0)
+				{
+					cout<< "GOtcha!"<<endl;
+					cout<<cttemp->GetSymbol()<<endl;
+					if (const CSymParam* qt = dynamic_cast<const CSymParam*>(cttemp->GetSymbol()))
+						cout<<"CSymParam!"<<endl;
+					if (const CSymProc* qt = dynamic_cast<const CSymProc*>(cttemp->GetSymbol()))
+						cout<<"CSymProc!"<<endl;
+				}
+				if (inline_vars.find(cttemp->GetSymbol()->GetName()) != inline_vars.end())
+				{
+					tdst = new CTacTemp(inline_vars[cttemp->GetSymbol()->GetName()]);
+					cout<<inline_vars[cttemp->GetSymbol()->GetName()]<<endl;
+				}
+			}
+			else if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tdst))
 				cout<<"CTacReference "<<tdst<<endl;
-			if (CTacLabel* ctlabel = dynamic_cast<CTacLabel*>(tdst))
+			else if (CTacLabel* ctlabel = dynamic_cast<CTacLabel*>(tdst))
 			{
 				ctlabel = inline_labels[ctlabel->GetLabel()];
 				tdst = ctlabel;
 				// GOTO label
+			}
+			else if (CTacName* ctname = dynamic_cast<CTacName*>(tdst))
+			{
+				cout<<"CTacName "<<tdst<<endl;
+				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
+				{
+					tdst = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
+				}
 			}
 		}
 
@@ -356,7 +371,21 @@ void Inlining::doOneStep()
 		if (tsrc1)
 		{
 		cout<<"2 "<<tsrc1<<endl;
-			if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc1))
+			if (CTacConst* ctconst = dynamic_cast <CTacConst*>(tsrc1))
+			{
+				cout<<"CTacConst "<<tsrc1<<endl;
+			}
+			else if (CTacTemp* cttemp = dynamic_cast <CTacTemp*>(tsrc1))
+			{
+				cout<<"CTacTemp "<<tsrc1<<endl;
+				if (inline_vars.find(cttemp->GetSymbol()->GetName()) != inline_vars.end())
+				{
+					tsrc1 = new CTacTemp(inline_vars[cttemp->GetSymbol()->GetName()]);
+				}
+			}
+			else if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tsrc1))
+				cout<<"CTacReference "<<tsrc1<<endl;
+			else if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc1))
 			{
 				cout<<"CTacName "<<tsrc1<<endl;
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
@@ -364,35 +393,36 @@ void Inlining::doOneStep()
 					tsrc1 = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
 				}
 			}
-			if (CTacConst* ctconst = dynamic_cast <CTacConst*>(tsrc1))
-				cout<<"CTacConst "<<tdst<<endl;
-			if (CTacTemp* ctconst = dynamic_cast <CTacTemp*>(tsrc1))
-				cout<<"CTacTemp "<<tdst<<endl;
-			if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tsrc1))
-				cout<<"CTacReference "<<tdst<<endl;
 		}
 
 		CTacAddr* tsrc2 = tinstr->GetSrc(2);
 		if (tsrc2)
 		{
 		cout<<"3 "<<tsrc2<<endl;
-			if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc2))
+			if (CTacConst* ctconst = dynamic_cast <CTacConst*>(tsrc2))
+				cout<<"CTacConst "<<tsrc2<<endl;
+			else if (CTacTemp* cttemp = dynamic_cast <CTacTemp*>(tsrc2))
+			{
+				cout<<"CTacTemp "<<tsrc2<<endl;
+				if (inline_vars.find(cttemp->GetSymbol()->GetName()) != inline_vars.end())
+				{
+					tsrc2 = new CTacTemp(inline_vars[cttemp->GetSymbol()->GetName()]);
+				}
+			}
+			else if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tsrc2))
+				cout<<"CTacReference "<<tsrc2<<endl;
+			else if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc2))
 			{
 				cout<<"CTacName "<<tsrc2<<endl;
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
 				{
-					tsrc2 = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
+					tsrc2 = new CTacTemp(inline_vars[ctname->GetSymbol()->GetName()]);
 				}
 			}
-			if (CTacConst* ctconst = dynamic_cast <CTacConst*>(tsrc2))
-				cout<<"CTacConst "<<tdst<<endl;
-			if (CTacTemp* ctconst = dynamic_cast <CTacTemp*>(tsrc2))
-				cout<<"CTacTemp "<<tdst<<endl;
-			if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tsrc2))
-				cout<<"CTacReference "<<tdst<<endl;
 		}
 		CTacInstr* newInstr = new CTacInstr(top, tdst, tsrc1, tsrc2);
 		new_instr_vector.push_back(newInstr);
+		cout<<newInstr<<endl;
 		cout<<"-----------------"<<endl;
 	}
 
