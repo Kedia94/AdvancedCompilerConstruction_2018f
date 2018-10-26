@@ -258,20 +258,72 @@ void Inlining::doOneStep()
 	// Copy function body of target of inlining
 	vector<CTacInstr*> new_instr_vector;
 
+	map<string, CTacLabel*> inline_labels;
+
 	for (list<CTacInstr*>::const_iterator tparm_it = tops.begin(); tparm_it != tops.end();tparm_it++)
 	{
 		CTacInstr* tinstr = *tparm_it;
 		cout<<tinstr<<endl;
+
+		// If label
 		if (tinstr)
 		{
 			if (CTacLabel* ctlabel = dynamic_cast<CTacLabel*>(tinstr))
 			{
 				string labName = ctlabel->GetLabel();
-				labName = labName.substr(labName.find('_')+1);
-				tinstr = tcb->CreateLabel(labName.c_str());
+				size_t found = labName.find('_');
+				if (found != string::npos)
+				{
+					int num = stoi(labName.substr(0, found));
+					string subLabName = labName.substr(found+1);
+
+
+					if (subLabName.compare("while_cond") == 0)
+					{
+						CTacLabel* tempLabel = tcb->CreateLabel();
+						inline_labels[to_string(num-1)] = tempLabel;
+
+						tempLabel = tcb->CreateLabel(subLabName.c_str());
+						inline_labels[labName] = tempLabel;
+						tinstr = tempLabel;
+						
+						tempLabel = tcb->CreateLabel("while_body");
+						inline_labels[to_string(num+1)+"_while_body"] = tempLabel;
+					}
+					else if (subLabName.compare("while_body")==0)
+					{
+						tinstr = inline_labels[labName];
+					}
+					else if (subLabName.compare("if_true")==0)
+					{
+						CTacLabel* tempLabel = tcb->CreateLabel();
+						inline_labels[to_string(num-1)] = tempLabel;
+
+						tempLabel = tcb->CreateLabel(subLabName.c_str());
+						inline_labels[labName] = tempLabel;
+						tinstr = tempLabel;
+						
+						tempLabel = tcb->CreateLabel("if_false");
+						inline_labels[to_string(num+1)+"_if_false"] = tempLabel;
+					}
+					else if (subLabName.compare("if_false")==0)
+					{
+						tinstr = inline_labels[labName];
+					}
+				}
+				else
+				{
+					tinstr = inline_labels[labName];
+				}
+
 				cout<<tinstr<<endl;
+				new_instr_vector.push_back(tinstr);
+				cout<<"1-----------------"<<endl;
+				continue;
 			}
 		}
+
+		// If not label
 		EOperation top = tinstr->GetOperation();
 		CTac* tdst = tinstr->GetDest();
 		if (tdst)
@@ -279,10 +331,24 @@ void Inlining::doOneStep()
 		cout<<"1 "<<tdst<<endl;
 			if (CTacName* ctname = dynamic_cast<CTacName*>(tdst))
 			{
+				cout<<"CTacName "<<tdst<<endl;
+				cout<<"Name"<<endl;
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
 				{
 					tdst = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
 				}
+			}
+			if (CTacConst* ctconst = dynamic_cast <CTacConst*>(tdst))
+				cout<<"CTacConst "<<tdst<<endl;
+			if (CTacTemp* ctconst = dynamic_cast <CTacTemp*>(tdst))
+				cout<<"CTacTemp "<<tdst<<endl;
+			if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tdst))
+				cout<<"CTacReference "<<tdst<<endl;
+			if (CTacLabel* ctlabel = dynamic_cast<CTacLabel*>(tdst))
+			{
+				ctlabel = inline_labels[ctlabel->GetLabel()];
+				tdst = ctlabel;
+				// GOTO label
 			}
 		}
 
@@ -292,11 +358,18 @@ void Inlining::doOneStep()
 		cout<<"2 "<<tsrc1<<endl;
 			if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc1))
 			{
+				cout<<"CTacName "<<tsrc1<<endl;
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
 				{
 					tsrc1 = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
 				}
 			}
+			if (CTacConst* ctconst = dynamic_cast <CTacConst*>(tsrc1))
+				cout<<"CTacConst "<<tdst<<endl;
+			if (CTacTemp* ctconst = dynamic_cast <CTacTemp*>(tsrc1))
+				cout<<"CTacTemp "<<tdst<<endl;
+			if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tsrc1))
+				cout<<"CTacReference "<<tdst<<endl;
 		}
 
 		CTacAddr* tsrc2 = tinstr->GetSrc(2);
@@ -305,11 +378,18 @@ void Inlining::doOneStep()
 		cout<<"3 "<<tsrc2<<endl;
 			if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc2))
 			{
+				cout<<"CTacName "<<tsrc2<<endl;
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
 				{
 					tsrc2 = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
 				}
 			}
+			if (CTacConst* ctconst = dynamic_cast <CTacConst*>(tsrc2))
+				cout<<"CTacConst "<<tdst<<endl;
+			if (CTacTemp* ctconst = dynamic_cast <CTacTemp*>(tsrc2))
+				cout<<"CTacTemp "<<tdst<<endl;
+			if (CTacReference* ctconst = dynamic_cast <CTacReference*>(tsrc2))
+				cout<<"CTacReference "<<tdst<<endl;
 		}
 		CTacInstr* newInstr = new CTacInstr(top, tdst, tsrc1, tsrc2);
 		new_instr_vector.push_back(newInstr);

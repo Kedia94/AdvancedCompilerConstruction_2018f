@@ -256,6 +256,7 @@ int main(int argc, char *argv[])
 
 	  a->doOneStep();
 	  delete a;
+	  
 	  // End DEBUG
 	  DumpTAC("test", m);
 
