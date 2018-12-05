@@ -98,8 +98,8 @@ void Syntax(string msg)
 
 void ParseArgs(int argc, char *argv[])
 {
-  files.push_back(string("test10.mod"));
-  /*
+  //files.push_back(string("test10.mod"));
+
   int i = 1;
 
   while (i < argc) {
@@ -123,7 +123,7 @@ void ParseArgs(int argc, char *argv[])
     files.push_back(string(argv[i]));
     i++;
   }
-*/  
+ 
 }
 
 void RunDOT(string file)
