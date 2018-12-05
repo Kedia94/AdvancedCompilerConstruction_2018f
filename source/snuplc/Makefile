@@ -1,6 +1,6 @@
 CC=g++
-#CCFLAGS=-std=c++0x -Iinclude -g -O0
-CCFLAGS=-std=c++0x -Iinclude -O2
+CCFLAGS=-std=c++0x -Iinclude -g -O0
+#CCFLAGS=-std=c++0x -Iinclude -O2
 
 INC_DIR=include
 SRC_DIR=src
@@ -13,7 +13,10 @@ DEPS=ir.h \
 SRC=ir.cpp \
 		backend.cpp \
 		fnode.cpp \
-		inlining.cpp
+		inlining.cpp \
+		basicblock.cpp \
+		cp.cpp \
+		dce.cpp
 MOD=scanner.cpp \
 		parser.cpp \
 		type.cpp \
