@@ -44,11 +44,14 @@
 #include "ir.h"
 #include "backend.h"
 #include "inlining.h"
+#include "cp.h"
+#include "dce.h"
+
 using namespace std;
 
 
-bool dump_ast = false;
-bool dump_tac = false;
+bool dump_ast = true;
+bool dump_tac = true;
 bool dump_asm = true;
 bool dump_dot = true;
 bool run_dot  = true;
@@ -95,6 +98,8 @@ void Syntax(string msg)
 
 void ParseArgs(int argc, char *argv[])
 {
+  files.push_back(string("test10.mod"));
+  /*
   int i = 1;
 
   while (i < argc) {
@@ -113,9 +118,12 @@ void ParseArgs(int argc, char *argv[])
       else if (strcmp(argv[i], "--help") == 0) Syntax("");
       else Syntax("Unknown command line option '" + string(argv[i]) + "'.");
     }
-    else files.push_back(string(argv[i]));
+    else 
+    
+    files.push_back(string(argv[i]));
     i++;
   }
+*/  
 }
 
 void RunDOT(string file)
@@ -248,7 +256,7 @@ int main(int argc, char *argv[])
       DumpTAC(file, m);
 	  
 	  // Start DEBUG
-	  
+/*	  
 	  Inlining *a = new Inlining();
 	  a->parseTAC(m);
 	  a->calculateScore();
@@ -256,9 +264,18 @@ int main(int argc, char *argv[])
 
 	  a->doOneStep();
 	  delete a;
-	  
-	  // End DEBUG
+*/
+    ConstantP *b = new ConstantP(m);
+    b->doConstantPropagation();
+    delete b;
 	  DumpTAC("test", m);
+
+    DeadCodeE *d = new DeadCodeE(m);
+    d->eliminateDeadCode();
+    delete d;
+
+	  // End DEBUG
+	  DumpTAC("test_", m);
 
       // output x86 assembly to console or file
       ostream *out = &cout;
