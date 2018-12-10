@@ -147,11 +147,13 @@ void Inlining::doOneStep()
 	cout<<"original: "<<_original_length<<" / predicted: "<<Peek<<endl;
 	if (_original_length == Peek)
 		return;
+
 	if (INLINING_LIMIT(_original_length) < Peek)
 	{
 		cout<<"Size limit: Do not inlining" << endl;
 		return;
 	}
+
 	float max_score = -1;
 	int max_index = -1;
 	int max_child_index = -1;

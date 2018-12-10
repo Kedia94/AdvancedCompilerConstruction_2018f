@@ -2,7 +2,7 @@ ROOT=..
 
 %: %.mod
 	$(ROOT)/snuplc/snuplc --ast --tac $<
-	gcc -static -m32 -o $@ $<.s $(ROOT)/rte/IA32/IO.s $(ROOT)/rte/IA32/ARRAY.s
+	gcc -O0 -static -m32 -o $@ $<.s $(ROOT)/rte/IA32/IO.s $(ROOT)/rte/IA32/ARRAY.s
 
 all:
 	@for i in *.mod; do \

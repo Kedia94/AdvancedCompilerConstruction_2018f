@@ -264,41 +264,77 @@ int main(int argc, char *argv[])
 
 	  a->doOneStep();
 	  delete a;
-*/
-    ConstantP *b = new ConstantP(m);
-    b->doConstantPropagation();
-    delete b;
-	  DumpTAC("test", m);
+ */
+	  CBackend *be;
+	  ostream *out = &cout;
+	  ofstream *sout = NULL;
 
-    DeadCodeE *d = new DeadCodeE(m);
-    d->eliminateDeadCode();
-    delete d;
+	  /* Original */
+	  if (dump_asm) {
+		  sout = new ofstream(file + ".s");
+		  out = sout;
+	  }
+
+	  be = new CBackendx86(*out);
+	  be->Emit(m);
+
+	  if (sout != NULL) {
+		  sout->flush();
+		  delete sout;
+	  }
+
+	  RunCompile(file + ".s");
+	  /* Original */
+
+	  ConstantP *b = new ConstantP(m);
+	  b->doConstantPropagation();
+	  delete b;
+	  DumpTAC("test_const", m);
+
+	  /* const */
+	  if (dump_asm) {
+		  sout = new ofstream("test_const.s");
+		  out = sout;
+	  }
+
+	  be = new CBackendx86(*out);
+	  be->Emit(m);
+
+	  if (sout != NULL) {
+		  sout->flush();
+		  delete sout;
+	  }
+
+	  RunCompile("test_const.s");
+	  /* Original */
+
+	  DeadCodeE *d = new DeadCodeE(m);
+	  d->eliminateDeadCode();
+	  delete d;
 
 	  // End DEBUG
-	  DumpTAC("test_", m);
+	  DumpTAC("test_dead", m);
 
-      // output x86 assembly to console or file
-      ostream *out = &cout;
-      ofstream *sout = NULL;
+	  // output x86 assembly to console or file
 
-      if (dump_asm) {
-        sout = new ofstream(file + ".s");
-        out = sout;
-      }
+	  if (dump_asm) {
+		  sout = new ofstream("test_dead.s");
+		  out = sout;
+	  }
 
-      CBackend *be = new CBackendx86(*out);
-      be->Emit(m);
+	  be = new CBackendx86(*out);
+	  be->Emit(m);
 
-      if (sout != NULL) {
-        sout->flush();
-        delete sout;
-      }
+	  if (sout != NULL) {
+		  sout->flush();
+		  delete sout;
+	  }
 
-      RunCompile(file + ".s");
+	  RunCompile("test_dead.s");
 
-      delete be;
-      delete m;
-    }
+	  delete be;
+	  delete m;
+	}
   }
 
   return EXIT_SUCCESS;

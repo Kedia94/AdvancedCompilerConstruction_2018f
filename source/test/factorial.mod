@@ -26,7 +26,6 @@ var i: integer;
 begin
   WriteStr(str);
   i := ReadInt();
-  WriteInt(i);
   return i
 end ReadNumber;
 
