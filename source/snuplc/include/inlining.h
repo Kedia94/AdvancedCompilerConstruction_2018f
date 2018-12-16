@@ -12,7 +12,7 @@
 #define INLINING_CALL_IN_SUB 3
 
 #define INLINING_SCORE_LEN(X) 1/(float)X
-#define INLINING_LIMIT(X) 1.5f*X
+#define INLINING_LIMIT(X) 2.0f*X
 
 using namespace std;
 
@@ -20,21 +20,23 @@ class Inlining {
 	public:
 		Inlining(void);
 		~Inlining(void);
-		void parseTAC(CModule *module);
-		void calculateScore();
-		void calculate(fNode* node, int base_score);
-		void doOneStep();
-		int GetCBSize();
-		int PeekCBSize();
-		virtual ostream&  print(ostream &out, int indent=0) const;
+		void parseTAC(CModule *module);							/* Read and parse TAC */
+		void calculateScore();									/* Calculate all score */
+		void calculate(fNode* node, int base_score);			/* Calculate score of node */
+		int doOneStep();										/* Inline a function */
+		int GetCBSize();										/* Get current size */
+		int PeekCBSize();										/* Estimate next size considering worst case */
+		virtual ostream&  print(ostream &out, int indent=0) const;	/* For debug */
 
 	protected:
 		CModule* _module;
 		vector<fNode*> _nodes;
 		int _param_iter;
 		int _original_length;
+		map<string, CTacLabel*> inline_labels;
 
 		fNode* FindSymbol(const CSymbol* symbol);
+		CTacLabel* GetLabel(CCodeBlock* tcb, CTacLabel* label);
 
 };
 ostream& operator<<(ostream &out, const Inlining &t);

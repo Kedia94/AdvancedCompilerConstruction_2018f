@@ -10,6 +10,7 @@ using namespace std;
 
 class fCallNode;
 
+/* A class represents each function declare */
 class fNode {
 	public:
 		fNode(int code_length, string name, CScope* module);
@@ -33,6 +34,7 @@ class fNode {
 		CScope* _module;
 };
 
+/* A class represents each function call */
 class fCallNode {
 	public:
 		fCallNode(fNode* original, int loop_level);

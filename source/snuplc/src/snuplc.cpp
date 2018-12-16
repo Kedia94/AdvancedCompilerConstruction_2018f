@@ -256,15 +256,6 @@ int main(int argc, char *argv[])
       DumpTAC(file, m);
 	  
 	  // Start DEBUG
-/*	  
-	  Inlining *a = new Inlining();
-	  a->parseTAC(m);
-	  a->calculateScore();
-	  cout << a << endl;
-
-	  a->doOneStep();
-	  delete a;
- */
 	  CBackend *be;
 	  ostream *out = &cout;
 	  ofstream *sout = NULL;
@@ -285,13 +276,48 @@ int main(int argc, char *argv[])
 
 	  RunCompile(file + ".s");
 	  /* Original */
+#define INLINE
+#ifdef INLINE
+	  
+	  Inlining *a = new Inlining();
+	  a->parseTAC(m);
+	  a->calculateScore();
+//	  cout << a << endl;
 
+	  int inlinenum=0;
+	  while (a->doOneStep() == 0)
+	  {
+		  inlinenum ++;
+//	  	cout<<inlinenum<<" ==================================="<<endl;
+//	  	cout << a << endl;
+	  }
+	  cout<<"Inlined "<<inlinenum<<" Times"<<endl;
+	  DumpTAC("test_inline", m);
+	  delete a;
+
+	  if (dump_asm) {
+		  sout = new ofstream("test_inline.s");
+		  out = sout;
+	  }
+
+	  be = new CBackendx86(*out);
+	  be->Emit(m);
+
+	  if (sout != NULL) {
+		  sout->flush();
+		  delete sout;
+	  }
+
+	  RunCompile("test_inline.s");
+#endif
+
+	  /* const */
+#ifdef CONST
 	  ConstantP *b = new ConstantP(m);
 	  b->doConstantPropagation();
 	  delete b;
 	  DumpTAC("test_const", m);
 
-	  /* const */
 	  if (dump_asm) {
 		  sout = new ofstream("test_const.s");
 		  out = sout;
@@ -306,8 +332,9 @@ int main(int argc, char *argv[])
 	  }
 
 	  RunCompile("test_const.s");
+#endif
 	  /* Original */
-
+#ifdef DEAD
 	  DeadCodeE *d = new DeadCodeE(m);
 	  d->eliminateDeadCode();
 	  delete d;
@@ -331,6 +358,7 @@ int main(int argc, char *argv[])
 	  }
 
 	  RunCompile("test_dead.s");
+#endif
 
 	  delete be;
 	  delete m;
