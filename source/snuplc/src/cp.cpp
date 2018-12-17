@@ -35,7 +35,7 @@ void ConstantP::doConstantPropagation(CCodeBlock* codeblock)
     list<BasicBlock*> BBlist;
     bool change = true;
 
-    cout << "\n[CODE BLOCK] : " << codeblock->GetName() << endl;
+    //cout << "\n[CODE BLOCK] : " << codeblock->GetName() << endl;
     while(change)
     {
         codeblock->CleanupControlFlow();
@@ -98,6 +98,114 @@ void ConstantP::doConstantPropagation(CCodeBlock* codeblock)
                  
             }
         }
+        // in block constant replacement
+        map<string, int> inBlockDefinition;
+        for (list<BasicBlock*>::const_iterator it_bb = BBlist.begin(); it_bb != BBlist.end(); it_bb++)
+        {
+            inBlockDefinition.clear();
+            list<CTacInstr*> bb_ops = (*it_bb)->GetInstr();
+            for (list<CTacInstr*>::const_iterator it = bb_ops.begin(); it != bb_ops.end(); it++) {
+                //cout << *it <<endl;
+                //opNeg opPos opNot
+                if ((*it)->GetOperation() >= opNeg && (*it)->GetOperation() <= opNot ){
+                    if (CTacConst* ctConst = dynamic_cast <CTacConst*>((*it)->GetSrc(1))){
+                        int newSrc = ctConst->GetValue();
+                        switch((*it)->GetOperation()){
+                            case opNeg:
+                                newSrc = newSrc >=0 ? newSrc * -1 : newSrc;
+                                break;
+                            case opPos:
+                                newSrc = newSrc >=0 ? newSrc : newSrc * -1;
+                                break;
+                            case opNot:
+                                newSrc = !newSrc;
+                                break;
+                        }
+                        CTacInstr* newInstr = new CTacInstr(opAssign,(*it)->GetDest(), new CTacConst(newSrc));
+                        codeblock->RepInstr((*it)->GetId(), newInstr);
+                        change= true;                   
+                        continue;                        
+                    }
+                }
+                if ((*it)->GetOperation() == opAssign){
+                    
+                    if (CTacConst* ctConst = dynamic_cast <CTacConst*>((*it)->GetSrc(1))){
+                        if (CTacName* dstName = dynamic_cast<CTacName*>((*it)->GetDest())){
+                            string variable=  dstName->GetSymbol()->GetName();
+
+                            // add a constant definition map of inblock
+                            inBlockDefinition[variable] = ctConst->GetValue();
+                        }
+                    }
+                    else
+                    { 
+                        if (CTacName* ctName = dynamic_cast<CTacName*>((*it)->GetSrc(1))){
+                            string variable = ctName->GetSymbol()->GetName();
+                            if(inBlockDefinition.find(variable) != inBlockDefinition.end() ){
+
+                                cout<< "[CF][In block] Replace: variable =  " << variable <<" constant = " <<inBlockDefinition[variable] <<endl;
+                                CTacInstr* newInstr = new CTacInstr((*it)->GetOperation(),(*it)->GetDest(), new CTacConst(inBlockDefinition[variable]) ,(*it)->GetSrc(2));
+                                codeblock->RepInstr((*it)->GetId(), newInstr);
+                                change= true;                   
+                                continue;
+                                /*
+                                if (CTacName* dstName = dynamic_cast<CTacName*>((*it)->GetDest())){
+                                    string newvariable=  dstName->GetSymbol()->GetName();
+
+                                    // add a constant definition map of inblock
+                                    inBlockDefinition[variable] = inBlockDefinition[newvariable] = inBlockDefinition[variable];
+                                } 
+                                */                           
+                            }
+                            else{
+                                if (CTacName* dstName = dynamic_cast<CTacName*>((*it)->GetDest())){
+                                    string variable=  dstName->GetSymbol()->GetName();
+                                    if(inBlockDefinition.find(variable) != inBlockDefinition.end() ){
+                                        inBlockDefinition.erase(variable);
+                                    }
+                                }                        
+                            } 
+                        }
+                    }           
+                } 
+                else{
+                    if (CTacName* ctName = dynamic_cast<CTacName*>((*it)->GetSrc(1))){
+                        string variable = ctName->GetSymbol()->GetName();
+                        if(inBlockDefinition.find(variable) != inBlockDefinition.end() ){
+
+                            //cout<< "[CF][In block] Replace: variable =  " << variable <<" constant = " <<inBlockDefinition[variable] <<endl;
+                            CTacInstr* newInstr = new CTacInstr((*it)->GetOperation(),(*it)->GetDest(), new CTacConst(inBlockDefinition[variable]) ,(*it)->GetSrc(2));
+                            codeblock->RepInstr((*it)->GetId(), newInstr);
+                            change= true;
+                            continue;
+                        }
+                    }
+
+                    if (CTacName* ctName = dynamic_cast<CTacName*>((*it)->GetSrc(2))){
+                        string variable = ctName->GetSymbol()->GetName();
+                        if(inBlockDefinition.find(variable) != inBlockDefinition.end() ){
+
+                            //cout<< "[CF][In block] Replace: variable =  " << variable <<" constant = " <<inBlockDefinition[variable] <<endl;
+                            CTacInstr* newInstr = new CTacInstr((*it)->GetOperation(),(*it)->GetDest(), (*it)->GetSrc(1), new CTacConst(inBlockDefinition[variable]));
+                            codeblock->RepInstr((*it)->GetId(), newInstr);
+                            change= true;
+                            continue;
+                        }
+                    }  
+
+                    if (CTacName* dstName = dynamic_cast<CTacName*>((*it)->GetDest())){
+                        string variable=  dstName->GetSymbol()->GetName();
+                        if(inBlockDefinition.find(variable) != inBlockDefinition.end() ){
+                            inBlockDefinition.erase(variable);
+                        }
+                    }
+
+                }
+
+            }        
+        }    
+        if (change)  // if there is a change in block, we start at the scratch, again.
+            continue;
 
         // Make VariableDefinition
         int defcount = 0;
@@ -124,6 +232,11 @@ void ConstantP::doConstantPropagation(CCodeBlock* codeblock)
                                 cd->isConst = true;
                                 cd->value = ctConst->GetValue();
                             }
+                            if (CTacReference* temp = dynamic_cast <CTacReference*>(dst)){
+                                cd->isReference = true;
+                            }else
+                                cd->isReference = false;
+
                             (*it_bb)->listDef.push_back(cd);
                             listDef_tot.push_back(cd);
 
@@ -223,34 +336,35 @@ void ConstantP::doConstantPropagation(CCodeBlock* codeblock)
 
             list<CTacInstr*> bb_ops = (*it_bb)->GetInstr();
             for (list<CTacInstr*>::const_iterator it = bb_ops.begin(); it != bb_ops.end(); it++) {         
-                CTacAddr* src1= (*it)->GetSrc(1);
-                if (CTacName* ctName = dynamic_cast <CTacName*>(src1)){
-                    string variable = ctName->GetSymbol()->GetName();
-                    if( liveDefinition.find(variable) != liveDefinition.end()){
-                        //replace it
-                        cout<< "[CF] Replace: variable =  " << variable <<" constant = " <<liveDefinition[variable] <<endl;
-                        CTacInstr* newInstr = new CTacInstr((*it)->GetOperation(),(*it)->GetDest(), new CTacConst(liveDefinition[variable]), (*it)->GetSrc(2));
-                        //cout << newInstr << endl;
-                        codeblock->RepInstr((*it)->GetId(), newInstr);
-                        
-                        change= true;
-                        continue;              
-                    }
-                }           
-                CTacAddr* src2= (*it)->GetSrc(2);
-                if (CTacName* ctName = dynamic_cast <CTacName*>(src2)){
-                    string variable = ctName->GetSymbol()->GetName();
-                    if( liveDefinition.find(variable) != liveDefinition.end()){
-                        //replace it
-                        cout<< "[CF] Replace: variable =  " << variable <<" constant = " <<liveDefinition[variable] <<endl;
-                        CTacInstr* newInstr = new CTacInstr((*it)->GetOperation(),(*it)->GetDest(), (*it)->GetSrc(1), new CTacConst(liveDefinition[variable]));
-                        //cout << newInstr << endl;
-                        codeblock->RepInstr((*it)->GetId(), newInstr);
 
-                        change= true;
-                        continue;                            
+                CTacAddr* src1= (*it)->GetSrc(1);
+                if(src1)
+                    if (CTacName* ctName = dynamic_cast <CTacName*>(src1)){
+                        string variable = ctName->GetSymbol()->GetName();
+                        if( liveDefinition.find(variable) != liveDefinition.end()){
+                            //replace it
+                            //cout<< "[CF] Replace: variable =  " << variable <<" constant = " <<liveDefinition[variable] <<endl;
+                            CTacInstr* newInstr = new CTacInstr((*it)->GetOperation(),(*it)->GetDest(), new CTacConst(liveDefinition[variable]), (*it)->GetSrc(2));
+                            codeblock->RepInstr((*it)->GetId(), newInstr);
+                            
+                            change= true;
+                            continue;              
+                        }
+                    }           
+                CTacAddr* src2= (*it)->GetSrc(2);
+                if(src2)
+                    if (CTacName* ctName = dynamic_cast <CTacName*>(src2)){
+                        string variable = ctName->GetSymbol()->GetName();
+                        if( liveDefinition.find(variable) != liveDefinition.end()){
+                            //replace it
+                            //cout<< "[CF] Replace: variable =  " << variable <<" constant = " <<liveDefinition[variable] <<endl;
+                            CTacInstr* newInstr = new CTacInstr((*it)->GetOperation(),(*it)->GetDest(), (*it)->GetSrc(1), new CTacConst(liveDefinition[variable]));
+                            codeblock->RepInstr((*it)->GetId(), newInstr);
+
+                            change= true;
+                            continue;                            
+                        }
                     }
-                }
                 
                 //processing operations if we replace a variable with the constant above.
 
@@ -259,7 +373,7 @@ void ConstantP::doConstantPropagation(CCodeBlock* codeblock)
                     CTacAddr* src1= (*it)->GetSrc(1);
                     CTacAddr* src2= (*it)->GetSrc(2);
                     if (CTacConst* ctConst1 = dynamic_cast <CTacConst*>(src1)){
-                        if (CTacConst* ctConst2 = dynamic_cast <CTacConst*>(src1)){
+                        if (CTacConst* ctConst2 = dynamic_cast <CTacConst*>(src2)){
                             int opResult;
                             switch(op){
                                 case opAdd:
@@ -281,7 +395,7 @@ void ConstantP::doConstantPropagation(CCodeBlock* codeblock)
                                     opResult = ctConst1->GetValue() | ctConst2->GetValue();
                                     break;                                 
                             }
-                            cout << "[CF] Folding: "<< (*it) << endl;
+                            //cout << "[CF] Folding: "<< (*it) << endl;
                             CTacInstr* newInstr = new CTacInstr(opAssign ,(*it)->GetDest(), new CTacConst(opResult));
                             codeblock->RepInstr((*it)->GetId(), newInstr);                           
                             change= true;  
@@ -322,7 +436,8 @@ void ConstantP::doConstantPropagation(CCodeBlock* codeblock)
                 {
                     list<VariableDef *>::iterator def_it = listDef_tot.begin();
                     advance(def_it, i);
-
+                    if((*def_it)->isReference)
+                        continue;
                     cout << "[CF] Remove : " << (*def_it)->instr << endl;
                     codeblock->DelInstr((*def_it)->instr->GetId());
                     change = true;
@@ -364,14 +479,14 @@ void ConstantP::doConstantPropagation(CCodeBlock* codeblock)
                             if(opResult){
                                 CTacInstr* newInstr = new CTacInstr(opGoto ,(*it)->GetDest());
                                 codeblock->RepInstr((*it)->GetId(), newInstr);
-                                cout << "[CF]Replace RelOp: "<< newInstr << endl;
+                                //cout << "[CF]Replace RelOp: "<< newInstr << endl;
                                 
                                 it++;
-                                cout << "[CF]Remove RelOp: "<< (*it) << endl;
+                                //cout << "[CF]Remove RelOp: "<< (*it) << endl;
                                 codeblock->DelInstr((*it)->GetId());
                                 
                             }else{
-                                cout << "[CF]Remove RelOp: "<< (*it) << endl;
+                                //cout << "[CF]Remove RelOp: "<< (*it) << endl;
                                 codeblock->DelInstr((*it)->GetId());
                             }
                           
