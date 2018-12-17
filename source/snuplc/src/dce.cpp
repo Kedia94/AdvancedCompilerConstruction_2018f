@@ -39,7 +39,7 @@ void DeadCodeE::eliminateDeadCode(CCodeBlock* codeblock)
     list<BasicBlock*> BBlist;
 
     bool change = true;
-
+    
     while(change)
     {
         codeblock->CleanupControlFlow();
@@ -105,7 +105,7 @@ void DeadCodeE::eliminateDeadCode(CCodeBlock* codeblock)
             bool remove = false;
             for (list<CTacInstr*>::iterator it = bb_ops.begin(); it != bb_ops.end(); it++) {
                 if(remove){
-                    cout << "[DCE]Remove  :" << (*it) << endl;
+                    //cout << "[DCE]Remove  :" << (*it) << endl;
                     codeblock->DelInstr((*it)->GetId());
                     change= true;
                     break;
@@ -114,7 +114,9 @@ void DeadCodeE::eliminateDeadCode(CCodeBlock* codeblock)
                     remove = true;
                 }
 
-            }            
+            }
+            if(change)
+                break;
         }
     }
 }
