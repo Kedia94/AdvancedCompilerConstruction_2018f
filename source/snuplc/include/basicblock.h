@@ -12,6 +12,7 @@ typedef struct VariableDef_ {
     string variableName;
     CTacInstr* instr;
     bool isConst;
+    bool isReference;
     int value;
 //    BasicBlock* inBlock;
 } VariableDef;
