@@ -49,6 +49,9 @@
 
 using namespace std;
 
+#define CONST
+#define DEAD
+#define INLINE
 
 bool dump_ast = true;
 bool dump_tac = true;
@@ -276,7 +279,108 @@ int main(int argc, char *argv[])
 
 	  RunCompile(file + ".s");
 	  /* Original */
-#define INLINE
+#ifdef CONST
+	  {
+		  ConstantP *b = new ConstantP(m);
+		  b->doConstantPropagation();
+		  delete b;
+		  DumpTAC("test_const", m);
+
+		  if (dump_asm) {
+			  sout = new ofstream("test_const.s");
+			  out = sout;
+		  }
+
+		  be = new CBackendx86(*out);
+		  be->Emit(m);
+
+		  if (sout != NULL) {
+			  sout->flush();
+			  delete sout;
+		  }
+
+		  RunCompile("test_const.s");
+	  }
+#endif
+	  /* Original */
+#ifdef DEAD
+	  {
+		  DeadCodeE *d = new DeadCodeE(m);
+		  d->eliminateDeadCode();
+		  delete d;
+
+		  // End DEBUG
+		  DumpTAC("test_dead", m);
+
+		  // output x86 assembly to console or file
+
+		  if (dump_asm) {
+			  sout = new ofstream("test_dead.s");
+			  out = sout;
+		  }
+
+		  be = new CBackendx86(*out);
+		  be->Emit(m);
+
+		  if (sout != NULL) {
+			  sout->flush();
+			  delete sout;
+		  }
+
+		  RunCompile("test_dead.s");
+	  }
+#endif
+#ifdef CONST
+	  {
+		  ConstantP *b = new ConstantP(m);
+		  b->doConstantPropagation();
+		  delete b;
+		  DumpTAC("test_const", m);
+
+		  if (dump_asm) {
+			  sout = new ofstream("test_const.s");
+			  out = sout;
+		  }
+
+		  be = new CBackendx86(*out);
+		  be->Emit(m);
+
+		  if (sout != NULL) {
+			  sout->flush();
+			  delete sout;
+		  }
+
+		  RunCompile("test_const.s");
+	  }
+#endif
+	  /* Original */
+#ifdef DEAD
+	  {
+		  DeadCodeE *d = new DeadCodeE(m);
+		  d->eliminateDeadCode();
+		  delete d;
+
+		  // End DEBUG
+		  DumpTAC("test_dead", m);
+
+		  // output x86 assembly to console or file
+
+		  if (dump_asm) {
+			  sout = new ofstream("test_dead.s");
+			  out = sout;
+		  }
+
+		  be = new CBackendx86(*out);
+		  be->Emit(m);
+
+		  if (sout != NULL) {
+			  sout->flush();
+			  delete sout;
+		  }
+
+		  RunCompile("test_dead.s");
+	  }
+#endif
 #ifdef INLINE
 	  
 	  Inlining *a = new Inlining();
@@ -313,51 +417,106 @@ int main(int argc, char *argv[])
 
 	  /* const */
 #ifdef CONST
-	  ConstantP *b = new ConstantP(m);
-	  b->doConstantPropagation();
-	  delete b;
-	  DumpTAC("test_const", m);
+	  {
+		  ConstantP *b = new ConstantP(m);
+		  b->doConstantPropagation();
+		  delete b;
+		  DumpTAC("test_const", m);
 
-	  if (dump_asm) {
-		  sout = new ofstream("test_const.s");
-		  out = sout;
+		  if (dump_asm) {
+			  sout = new ofstream("test_const.s");
+			  out = sout;
+		  }
+
+		  be = new CBackendx86(*out);
+		  be->Emit(m);
+
+		  if (sout != NULL) {
+			  sout->flush();
+			  delete sout;
+		  }
+
+		  RunCompile("test_const.s");
 	  }
-
-	  be = new CBackendx86(*out);
-	  be->Emit(m);
-
-	  if (sout != NULL) {
-		  sout->flush();
-		  delete sout;
-	  }
-
-	  RunCompile("test_const.s");
 #endif
 	  /* Original */
 #ifdef DEAD
-	  DeadCodeE *d = new DeadCodeE(m);
-	  d->eliminateDeadCode();
-	  delete d;
+	  {
+		  DeadCodeE *d = new DeadCodeE(m);
+		  d->eliminateDeadCode();
+		  delete d;
 
-	  // End DEBUG
-	  DumpTAC("test_dead", m);
+		  // End DEBUG
+		  DumpTAC("test_dead", m);
 
-	  // output x86 assembly to console or file
+		  // output x86 assembly to console or file
 
-	  if (dump_asm) {
-		  sout = new ofstream("test_dead.s");
-		  out = sout;
+		  if (dump_asm) {
+			  sout = new ofstream("test_dead.s");
+			  out = sout;
+		  }
+
+		  be = new CBackendx86(*out);
+		  be->Emit(m);
+
+		  if (sout != NULL) {
+			  sout->flush();
+			  delete sout;
+		  }
+
+		  RunCompile("test_dead.s");
 	  }
+#endif
+#ifdef CONST
+	  {
+		  ConstantP *b = new ConstantP(m);
+		  b->doConstantPropagation();
+		  delete b;
+		  DumpTAC("test_const", m);
 
-	  be = new CBackendx86(*out);
-	  be->Emit(m);
+		  if (dump_asm) {
+			  sout = new ofstream("test_const.s");
+			  out = sout;
+		  }
 
-	  if (sout != NULL) {
-		  sout->flush();
-		  delete sout;
+		  be = new CBackendx86(*out);
+		  be->Emit(m);
+
+		  if (sout != NULL) {
+			  sout->flush();
+			  delete sout;
+		  }
+
+		  RunCompile("test_const.s");
 	  }
+#endif
+	  /* Original */
+#ifdef DEAD
+	  {
+		  DeadCodeE *d = new DeadCodeE(m);
+		  d->eliminateDeadCode();
+		  delete d;
 
-	  RunCompile("test_dead.s");
+		  // End DEBUG
+		  DumpTAC("test_dead", m);
+
+		  // output x86 assembly to console or file
+
+		  if (dump_asm) {
+			  sout = new ofstream("test_dead.s");
+			  out = sout;
+		  }
+
+		  be = new CBackendx86(*out);
+		  be->Emit(m);
+
+		  if (sout != NULL) {
+			  sout->flush();
+			  delete sout;
+		  }
+
+		  RunCompile("test_dead.s");
+	  }
 #endif
 
 	  delete be;
