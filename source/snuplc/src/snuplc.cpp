@@ -361,7 +361,7 @@ int main(int argc, char *argv[])
 		  delete d;
 
 		  // End DEBUG
-		  DumpTAC("test_dead", m);
+		  DumpTAC("test_dead1", m);
 
 		  // output x86 assembly to console or file
 

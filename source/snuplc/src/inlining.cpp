@@ -146,6 +146,7 @@ void Inlining::calculate(fNode* node, int base_score)
 
 int Inlining::doOneStep()
 {
+	cout<<this<<endl;
 	// Check do inlining or not
 	int Peek = PeekCBSize();
 	cout<<"original: "<<_original_length<<" / predicted: "<<Peek<<endl;
@@ -366,7 +367,13 @@ int Inlining::doOneStep()
 //					cout<<"CTacReference "<<tdst<<endl;
 //					cout << " "<<ctref->GetSymbol()->GetName()<<endl;
 //					cout << " "<<ctref->GetDerefSymbol()->GetName()<<endl;
-					tdst = new CTacReference(inline_vars[ctref->GetSymbol()->GetName()], inline_vars[ctref->GetDerefSymbol()->GetName()]);
+					const CSymbol *tsym = ctref->GetSymbol();
+					const CSymbol *tderef = ctref->GetDerefSymbol();
+					if (inline_vars.find(tsym->GetName()) != inline_vars.end())
+						tsym = inline_vars[tsym->GetName()];
+					if (inline_vars.find(tderef->GetName()) != inline_vars.end())
+						tderef = inline_vars[tderef->GetName()];
+					tdst = new CTacReference(tsym, tderef);
 				}
 				else if (CTacLabel* ctlabel = dynamic_cast<CTacLabel*>(tdst))
 				{
@@ -406,7 +413,13 @@ int Inlining::doOneStep()
 //					cout<<"CTacReference "<<tsrc1<<endl;
 //					cout << " "<<ctref->GetSymbol()->GetName()<<endl;
 //					cout << " "<<ctref->GetDerefSymbol()->GetName()<<endl;
-					tsrc1 = new CTacReference(inline_vars[ctref->GetSymbol()->GetName()], inline_vars[ctref->GetDerefSymbol()->GetName()]);
+					const CSymbol *tsym = ctref->GetSymbol();
+					const CSymbol *tderef = ctref->GetDerefSymbol();
+					if (inline_vars.find(tsym->GetName()) != inline_vars.end())
+						tsym = inline_vars[tsym->GetName()];
+					if (inline_vars.find(tderef->GetName()) != inline_vars.end())
+						tderef = inline_vars[tderef->GetName()];
+					tsrc1 = new CTacReference(tsym, tderef);
 				}
 				else if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc1))
 				{
@@ -439,7 +452,13 @@ int Inlining::doOneStep()
 //					cout<<"CTacReference "<<tsrc2<<endl;
 //					cout << " "<<ctref->GetSymbol()->GetName()<<endl;
 //					cout << " "<<ctref->GetDerefSymbol()->GetName()<<endl;
-					tsrc2 = new CTacReference(inline_vars[ctref->GetSymbol()->GetName()], inline_vars[ctref->GetDerefSymbol()->GetName()]);
+					const CSymbol *tsym = ctref->GetSymbol();
+					const CSymbol *tderef = ctref->GetDerefSymbol();
+					if (inline_vars.find(tsym->GetName()) != inline_vars.end())
+						tsym = inline_vars[tsym->GetName()];
+					if (inline_vars.find(tderef->GetName()) != inline_vars.end())
+						tderef = inline_vars[tderef->GetName()];
+					tsrc2 = new CTacReference(tsym, tderef);
 				}
 				else if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc2))
 				{
