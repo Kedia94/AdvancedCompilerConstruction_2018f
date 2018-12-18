@@ -3,6 +3,7 @@ ROOT=..
 %: %.mod
 	$(ROOT)/snuplc/snuplc --ast --tac $<
 	gcc -O0 -static -m32 -o $@ $<.s $(ROOT)/rte/IA32/IO.s $(ROOT)/rte/IA32/ARRAY.s
+	gcc -O0 -static -m32 -o $@_opt $@_opt.s $(ROOT)/rte/IA32/IO.s $(ROOT)/rte/IA32/ARRAY.s
 
 all:
 	@for i in *.mod; do \
@@ -13,4 +14,4 @@ clean:
 	@for i in *.mod; do \
 		rm -f $${i%%.mod} $${i}.s $${i}.tac $${i}.ast $${i}.*.dot $${i}.*.pdf; \
 	done
-	rm -rf *.s *.tac *.ast *.dot *.pdf
+	@rm -rf *.s *.tac *.ast *.dot *.pdf *_opt
