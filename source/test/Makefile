@@ -13,3 +13,4 @@ clean:
 	@for i in *.mod; do \
 		rm -f $${i%%.mod} $${i}.s $${i}.tac $${i}.ast $${i}.*.dot $${i}.*.pdf; \
 	done
+	rm -rf *.s *.tac *.ast *.dot *.pdf
