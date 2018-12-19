@@ -22,10 +22,8 @@ Test target: testname.mod
 4. Following ouput files are generated
 
    - Original SnuPLc outputs
-
      - testname
      - testname.mod.s
-
      - testname.mod.ast
      - testname.mod.ast.dot
      - testname.mod.ast.dot.pdf
@@ -34,7 +32,6 @@ Test target: testname.mod
      - testname.mod.tac.dot.pdf
 
    - Our optimized compiler outputs
-
      - testname_opt
      - testname_opt.s
      - testname_opt.tac
@@ -59,7 +56,6 @@ To disable each optimization, please delete a define of selected optimization.
  52 #define CONST
  53 #define DEAD
  54 #define INLINE
-
 ```
 
 
