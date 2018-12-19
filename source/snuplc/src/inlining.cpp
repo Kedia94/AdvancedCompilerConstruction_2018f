@@ -146,7 +146,7 @@ void Inlining::calculate(fNode* node, int base_score)
 
 int Inlining::doOneStep()
 {
-	cout<<this<<endl;
+//	cout<<this<<endl;
 	// Check do inlining or not
 	int Peek = PeekCBSize();
 	cout<<"original: "<<_original_length<<" / predicted: "<<Peek<<endl;
@@ -289,7 +289,7 @@ int Inlining::doOneStep()
 	for (list<CTacInstr*>::const_iterator tparm_it = tops.begin(); tparm_it != tops.end();tparm_it++)
 	{
 		CTacInstr* tinstr = *tparm_it;
-//		cout<<tinstr<<endl;
+		//cout<<tinstr<<endl;
 
 		// If label
 		if (tinstr)
@@ -322,12 +322,27 @@ int Inlining::doOneStep()
 //                    cout<<inline_vars[cttemp->GetSymbol()->GetName()]<<endl;
                 }
 			}
+				else if (CTacReference* ctref = dynamic_cast <CTacReference*>(tsrc1))
+				{
+//					cout<<"CTacReference "<<tdst<<endl;
+//					cout << " "<<ctref->GetSymbol()->GetName()<<endl;
+//					cout << " "<<ctref->GetDerefSymbol()->GetName()<<endl;
+					const CSymbol *tsym = ctref->GetSymbol();
+					const CSymbol *tderef = ctref->GetDerefSymbol();
+					if (inline_vars.find(tsym->GetName()) != inline_vars.end())
+						tsym = inline_vars[tsym->GetName()];
+					if (inline_vars.find(tderef->GetName()) != inline_vars.end())
+						tderef = inline_vars[tderef->GetName()];
+					tsrc1 = new CTacReference(tsym, tderef);
+				}
 			else if (CTacName* ctname = dynamic_cast<CTacName*>(tsrc1))
 			{
 //				cout<<"CTacName "<<tsrc1<<endl;
 				if (inline_vars.find(ctname->GetSymbol()->GetName()) != inline_vars.end())
 				{
+//					cout<<"bef: "<<tsrc1<<endl;
 					tsrc1 = new CTacName(inline_vars[ctname->GetSymbol()->GetName()]);
+//					cout<<"aft: "<<tsrc1<<endl;
 				}
 			}
 
@@ -471,8 +486,8 @@ int Inlining::doOneStep()
 			}
 			CTacInstr* newInstr = new CTacInstr(top, tdst, tsrc1, tsrc2);
 			new_instr_vector.push_back(newInstr);
-//			cout<<newInstr<<endl;
-//			cout<<"-----------------"<<endl;
+			//cout<<newInstr<<endl;
+			//cout<<"-----------------"<<endl;
 		}
 	}
 

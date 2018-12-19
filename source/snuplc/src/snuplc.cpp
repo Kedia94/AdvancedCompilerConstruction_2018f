@@ -50,8 +50,9 @@
 using namespace std;
 
 #define CONST
-//#define DEAD
+#define DEAD
 #define INLINE
+//#define DEBUGTAC
 
 bool dump_ast = true;
 bool dump_tac = true;
@@ -319,8 +320,23 @@ int main(int argc, char *argv[])
 
 			}
 #endif
-#ifdef INLINE
+#ifdef DEBUGTAC
+			DumpTAC("test_", m);
+			if (dump_asm) {
+				sout = new ofstream("test_.s");
+				out = sout;
+			}
 
+			be = new CBackendx86(*out);
+			be->Emit(m);
+
+			if (sout != NULL) {
+				sout->flush();
+				delete sout;
+			}
+
+#endif
+#ifdef INLINE
 			Inlining *a = new Inlining();
 			a->parseTAC(m);
 			a->calculateScore();
@@ -330,13 +346,30 @@ int main(int argc, char *argv[])
 			while (a->doOneStep() == 0)
 			{
 				inlinenum ++;
+//				if (inlinenum == 4)
+//					break;
 				//	  	cout<<inlinenum<<" ==================================="<<endl;
 				//	  	cout << a << endl;
 			}
 			cout<<"Inlined "<<inlinenum<<" Times"<<endl;
 
 #endif
+#ifdef DEBUGTAC
+			DumpTAC("test_inline", m);
+			if (dump_asm) {
+				sout = new ofstream("test_inline.s");
+				out = sout;
+			}
 
+			be = new CBackendx86(*out);
+			be->Emit(m);
+
+			if (sout != NULL) {
+				sout->flush();
+				delete sout;
+			}
+
+#endif
 			/* const */
 #ifdef CONST
 			{
