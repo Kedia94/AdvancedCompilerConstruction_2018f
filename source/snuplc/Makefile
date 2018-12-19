@@ -1,5 +1,5 @@
 CC=g++
-CCFLAGS=-std=c++0x -Iinclude -g -O0
+CCFLAGS=-std=c++0x -Iinclude -O0
 #CCFLAGS=-std=c++0x -Iinclude -O2
 
 INC_DIR=include

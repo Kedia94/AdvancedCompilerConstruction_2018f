@@ -51,7 +51,7 @@ void DeadCodeE::eliminateDeadCode(CCodeBlock* codeblock)
         BasicBlock* bb = NULL;
         BasicBlock* prev_bb = NULL;
         CTacInstr* prev_inst = NULL;
-
+// make basic code block list for dead code elimination
         for (list<CTacInstr*>::const_iterator it = ops.begin(); it != ops.end(); it++) {
             
             if( it == ops.begin() || (*it)->GetOperation() == opLabel)
@@ -99,13 +99,14 @@ void DeadCodeE::eliminateDeadCode(CCodeBlock* codeblock)
                  
             }
         }
-
+// eliminate unreaching instructions in code block by unconditional branching
         for (list<BasicBlock*>::iterator it_bb = BBlist.begin(); it_bb != BBlist.end(); it_bb++) {
             list<CTacInstr*> bb_ops = (*it_bb)->GetInstr();
             bool remove = false;
             for (list<CTacInstr*>::iterator it = bb_ops.begin(); it != bb_ops.end(); it++) {
-                if(remove){
+                if(remove){ 
                     //cout << "[DCE]Remove  :" << (*it) << endl;
+		    // for the following instructions of unconditional branching
                     codeblock->DelInstr((*it)->GetId());
                     change= true;
                     break;
