@@ -1,12 +1,11 @@
 //
-// test05
+// test17
 //
 // computations with integers arrays
 //
-// expected output: 1987654321 (no newline)
 //
 
-module test14;
+module test17;
 
 var input : integer;
     i : integer;
@@ -54,4 +53,4 @@ begin
   end;
 iter := iter-1
   end
-end test14.
+end test17.

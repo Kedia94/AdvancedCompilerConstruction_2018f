@@ -1,9 +1,8 @@
 //
-// test05
+// test14
 //
 // computations with integers arrays
 //
-// expected output: 1987654321 (no newline)
 //
 
 module test14;
