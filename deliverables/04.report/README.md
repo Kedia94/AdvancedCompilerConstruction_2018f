@@ -13,7 +13,7 @@ Member
 
 Test target: testname.mod
 
-1. Build snuplc by commane 'make' on source/snuplc directory
+1. Build snuplc by using command 'make' on source/snuplc directory
 
 2. Go to source/test
 
